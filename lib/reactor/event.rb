@@ -2,6 +2,11 @@ class Reactor::Event
   include Reactor::OptionallySubclassable
   include Sidekiq::Worker
 
+  CONSOLE_CONFIRMATION_MESSAGE = <<-eos
+    It looks like you are on a production console. Only fire an event if you intend to trigger 
+    all of its subscribers. In order to proceed, you must pass `srsly: true` in the event data.'
+  eos
+
   attr_accessor :__data__
 
   def initialize(data = {})
@@ -55,6 +60,9 @@ class Reactor::Event
     end
 
     def publish(name, data = {})
+      if defined?(Rails::Console) && ENV['RACK_ENV'] == 'production' && data[:srsly].blank?
+        raise ArgumentError.new(CONSOLE_CONFIRMATION_MESSAGE)
+      end
       message = new(data.merge(event: name, uuid: SecureRandom.uuid))
 
       if message.at
