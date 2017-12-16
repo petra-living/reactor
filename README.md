@@ -64,11 +64,18 @@ end
 publishes :reminder_sent, at: :reminder_email_time, watch: :created_at
 ```
 
-  Scheduled events can check conditionally fire -- eg: in 2 days fire reminder_email if the user hasn't already responded.
+  Scheduled events can check conditionally fire -- eg: in 2 days fire reminder_email if the user hasn't already responded. Note that this check will occur at the time the event is intended to fire, after which the state of the model may have changed. 
 
 ```ruby
 publishes :reminder_sent, at: :reminder_email_time, if: -> { user.responded == false }
 ```
+
+  It is also possible to conditionally trigger events so that the check happens within the context of the model, at the moment an update occurs, rather than later in the context of the Reactor::Event
+
+```ruby
+publishes :model_changed_in_some_important_way, enqueue_if: -> { important_change_occurred? }
+```
+
 
 #### Subscribable
 
