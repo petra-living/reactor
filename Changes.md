@@ -1,5 +1,9 @@
 # Reactor Change Log
 
+0.17.0
+----------
+`publishes` method in publishable now accepts `:enqueue_if` option
+
 0.16.0
 ----------
 Subscribers can now deprecate themselves for safe removal from production deployments.
