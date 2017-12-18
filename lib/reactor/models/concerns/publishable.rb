@@ -39,19 +39,29 @@ module Reactor::Publishable
 
   def reschedule(name, data)
     if data[:at]
-      Reactor::Event.reschedule name,
-        data.merge(
-            at: send(data[:at]),
-            actor: ( data[:actor] ? send(data[:actor]) : self ),
-            target: ( data[:target] ? self : nil),
-            was: previous_changes[data[:at]].try(:first) || send("#{data[:at]}_was"))
+      event = event_data_for_signature(data).merge(
+        was: previous_changes[data[:at]].try(:first) || send("#{data[:at]}_was")
+      )
+      Reactor::Event.reschedule(name, event) if should_fire_reactor_event?(data)
     end
   end
 
   def schedule_events
     self.class.events.each do |name, data|
       event = event_data_for_signature(data)
-      Reactor::Event.publish name, event
+      Reactor::Event.publish(name, event) if should_fire_reactor_event?(data)
+    end
+  end
+
+  def should_fire_reactor_event?(data, handler_name = :enqueue_if)
+    handler = data[handler_name]
+    case handler
+    when Proc
+      instance_exec(&handler)
+    when Symbol
+      send(handler)
+    when NilClass
+      true
     end
   end
 
@@ -60,6 +70,6 @@ module Reactor::Publishable
         actor: (signature[:actor] ? send(signature[:actor]) : self),
         target: (signature[:target] ? self : nil),
         at: (signature[:at] ? send(signature[:at]) : nil)
-    ).except(:watch)
+    ).except(:watch, :enqueue_if)
   end
 end
