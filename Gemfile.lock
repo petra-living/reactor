@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    reactor (0.16.1)
+    reactor (0.17.0)
       rails
       sidekiq (> 4.0)
 
@@ -142,7 +142,7 @@ GEM
     sprockets (3.7.1)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
-    sprockets-rails (3.2.0)
+    sprockets-rails (3.2.1)
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
