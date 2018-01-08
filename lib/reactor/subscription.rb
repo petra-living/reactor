@@ -2,7 +2,7 @@ module Reactor
   class Subscription
 
     attr_reader :source, :event_name, :action, :handler_name, :delay, :async, :worker_class,
-                :deprecated
+                :deprecated, :sidekiq_options
 
     def self.build_handler_name(event_name, handler_name_option = nil)
       if handler_name_option
@@ -26,6 +26,7 @@ module Reactor
       @delay = options[:delay].to_i
       @async = determine_async(options)
       @deprecated = !!options[:deprecated]
+      @sidekiq_options = options[:sidekiq_options] || {}
       build_worker_class
     end
 
@@ -85,6 +86,7 @@ module Reactor
         self.async  = subscription.async
         self.delay  = subscription.delay
         self.deprecated  = subscription.deprecated
+        self.sidekiq_options subscription.sidekiq_options
       end
     end
 
@@ -96,6 +98,7 @@ module Reactor
         self.delay  = subscription.delay
         self.async  = subscription.async
         self.deprecated  = subscription.deprecated
+        self.sidekiq_options subscription.sidekiq_options
       end
     end
 

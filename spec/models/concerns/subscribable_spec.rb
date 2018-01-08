@@ -23,6 +23,11 @@ class Auction < ActiveRecord::Base
     raise 'hell'
   end
 
+  on_event :event_with_ui_bound,
+           sidekiq_options: { queue: 'highest_priority', retry: false } do |event|
+    speedily_execute!
+  end
+
   def self.ring_bell(event)
     "ring ring! #{event}"
   end
@@ -146,6 +151,18 @@ describe Reactor::Subscribable do
         expect {
           Reactor::Event.publish(:a_high_frequency_event)
         }.to_not raise_exception
+      end
+    end
+
+    describe 'passing sidekiq_options through to Sidekiq' do
+      it 'passes options to Sidekiq API' do
+        expect(Reactor::StaticSubscribers::Auction::EventWithUiBoundHandler.get_sidekiq_options).
+            to eql({ 'queue' => 'highest_priority', 'retry' => false })
+      end
+
+      it 'keeps default options when none supplied' do
+        expect(Reactor::StaticSubscribers::Auction::WildcardHandler.get_sidekiq_options).
+            to eql({ 'queue' => 'default', 'retry' => true })
       end
     end
 
