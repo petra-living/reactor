@@ -97,6 +97,14 @@ on_event :any_event, in_memory: true do |event|
 end
 ```
 
+  You may also have Sidekiq process a subscriber block on a specific queue or supply any other Sidekiq::Worker options accordingly.
+
+```ruby
+on_event :event_with_ui_bound, sidekiq_options: { queue: 'highest_priority' } do |event|
+  speedily_execute!
+end
+```
+
 #### ResourceActionable
 
     Enforce a strict 1:1 match between your event model and database model with this controller mixin.
