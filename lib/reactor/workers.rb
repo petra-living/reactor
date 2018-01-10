@@ -5,4 +5,3 @@ end
 
 require "reactor/workers/event_worker"
 require "reactor/workers/mailer_worker"
-require "reactor/workers/database_subscriber_worker"

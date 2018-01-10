@@ -1,5 +1,4 @@
 class Reactor::Event
-  include Reactor::OptionallySubclassable
   include Sidekiq::Worker
 
   attr_accessor :__data__
@@ -32,7 +31,6 @@ class Reactor::Event
 
     if need_to_fire
       data.merge!(fired_at: Time.current, name: name)
-      fire_database_driven_subscribers(data, name)
       fire_block_subscribers(data, name)
     end
   end
@@ -113,13 +111,6 @@ class Reactor::Event
 
   def initialize_polymorphic_association(method)
     __data__["#{method}_type"].constantize.find(__data__["#{method}_id"])
-  end
-
-  def fire_database_driven_subscribers(data, name)
-    #TODO: support more matching?
-    Reactor::Subscriber.where(event_name: [name, '*']).pluck(:id).each do |model_id|
-      Reactor::Workers::DatabaseSubscriberWorker.perform_async model_id, data
-    end
   end
 
   def fire_block_subscribers(data, name)
