@@ -9,7 +9,6 @@ require "reactor/workers/concerns/configuration"
 require "reactor/workers"
 require "reactor/subscription"
 require "reactor/models"
-require "reactor/controllers"
 require "reactor/event"
 
 # FIXME: should only be included in test environments
