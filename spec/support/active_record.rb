@@ -24,13 +24,6 @@ ActiveRecord::Migration.create_table :publishers do |t|
   t.timestamps null: false
 end
 
-ActiveRecord::Migration.create_table :subscribers do |t|
-  t.string :event_name
-  t.string :type
-
-  t.timestamps null: false
-end
-
 ActiveRecord::Migration.create_table :pets do |t|
   t.integer :awesomeness
   t.string :type

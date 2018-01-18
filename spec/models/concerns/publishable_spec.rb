@@ -20,21 +20,10 @@ class Publisher < ActiveRecord::Base
   publishes :woof, actor: :pet, target: :self
 end
 
-class TestSubscriber < Reactor::Subscriber
-  @@called = false
-
-  on_fire do
-    @@called = true
-  end
-end
-
 describe Reactor::Publishable do
-  before do
-    TestSubscriber.destroy_all
-    TestSubscriber.class_variable_set(:@@called, false)
-  end
+  before { allow(Reactor::Event).to receive(:perform_at).and_call_original }
 
-  describe 'publish' do
+  describe 'publishes' do
     let(:pet) { Pet.create! }
     let(:publisher) { Publisher.create!(pet: pet, start_at: Time.current + 1.day, we_want_it: false) }
 
@@ -92,7 +81,7 @@ describe Reactor::Publishable do
       before do
         Sidekiq::Testing.fake!
         Sidekiq::Worker.clear_all
-        TestSubscriber.create! event_name: :conditional_event_on_publish
+        # TestSubscriber.create! event_name: :conditional_event_on_publish
         publisher
         job = Reactor::Event.jobs.detect do |job|
           job['class'] == 'Reactor::Event' && job['args'].first == 'conditional_event_on_publish'
@@ -153,7 +142,6 @@ describe Reactor::Publishable do
       before do
         Sidekiq::Testing.fake!
         Sidekiq::Worker.clear_all
-        TestSubscriber.create! event_name: :conditional_event_on_save
         publisher
         job = Reactor::Event.jobs.detect do |job|
           job['class'] == 'Reactor::Event' && job['args'].first == 'conditional_event_on_save'
@@ -203,27 +191,28 @@ describe Reactor::Publishable do
 
 
     it 'supports immediate events (on create) that get fired once' do
-      Reactor.with_subscriber_enabled(Reactor::Subscriber) do
-        TestSubscriber.create! event_name: :bell
-        publisher
-        expect(TestSubscriber.class_variable_get(:@@called)).to be_truthy
-        TestSubscriber.class_variable_set(:@@called, false)
-        publisher.start_at = 1.day.from_now
-        publisher.save
-        expect(TestSubscriber.class_variable_get(:@@called)).to be_falsey
-      end
+      expect(Reactor::Event).to receive(:perform_async).
+        with(:woof, hash_including(actor_type: 'Pet'))
+      expect(Reactor::Event).to receive(:perform_async).
+          with(:bell, hash_including(actor_type: 'Publisher'))
+
+      publisher
+
+      # and dont get fired on update
+      publisher.start_at = 1.day.from_now
+      expect(Reactor::Event).to_not receive(:perform_async).with(:bell)
+      expect(Reactor::Event).to_not receive(:perform_async).with(:woof)
+      publisher.save
+
     end
 
     it 'does publish an event scheduled for the future' do
-      Reactor.enable_test_mode_subscriber Reactor::Subscriber
-      Reactor.enable_test_mode_subscriber Publisher
-      TestSubscriber.create! event_name: :begin
-      Publisher.create!(pet: pet, start_at: Time.current + 1.week)
+      future = Time.now.utc + 1.week
 
-      expect(TestSubscriber.class_variable_get(:@@called)).to be_truthy
+      expect(Reactor::Event).to receive(:perform_at).
+          with(future, :begin, hash_including('additional_info' => 'curtis was here'))
 
-      Reactor.disable_test_mode_subscriber Reactor::Subscriber
-      Reactor.disable_test_mode_subscriber Publisher
+      Publisher.create!(pet: pet, start_at: future)
     end
   end
 end

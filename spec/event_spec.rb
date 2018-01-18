@@ -80,36 +80,35 @@ describe Reactor::Event do
   end
 
   describe 'perform' do
-    before do
-      Reactor::Subscriber.create(event_name: :user_did_this)
-      Reactor.enable_test_mode_subscriber(Reactor::Subscriber)
-    end
-
-    after do
-      Reactor::Subscriber.destroy_all
-      Reactor.enable_test_mode_subscriber(Reactor::Subscriber)
-    end
+    # before do
+    #   allow(Reactor::Event).
+    # end
+    let(:event_name) { :barfed }
 
     it 'fires all subscribers' do
-      expect_any_instance_of(Reactor::Subscriber).to receive(:fire).with(hash_including(actor_id: model.id.to_s))
+      expect(Reactor::StaticSubscribers::ArbitraryModel::BarfedHandler).
+          to receive(:perform_async).with(hash_including(actor_id: model.id.to_s))
+
       Reactor::Event.perform(event_name, actor_id: model.id.to_s, actor_type: model.class.to_s)
     end
 
     it 'sets a fired_at key in event data' do
-      expect_any_instance_of(Reactor::Subscriber).to receive(:fire).with(hash_including(fired_at: anything))
-      Reactor::Event.perform(event_name, actor_id: model.id.to_s, actor_type: model.class.to_s)
-    end
+      expect(Reactor::StaticSubscribers::ArbitraryModel::BarfedHandler).
+          to receive(:perform_async).with(hash_including(fired_at: anything))
 
-    it 'works with the legacy .process method, too' do
-      expect_any_instance_of(Reactor::Subscriber).to receive(:fire).with(hash_including(actor_id: model.id.to_s))
       Reactor::Event.perform(event_name, actor_id: model.id.to_s, actor_type: model.class.to_s)
     end
 
     describe 'when subscriber throws exception', :sidekiq do
-      let(:barfing_event) { Reactor::Event.perform('barfed', somethin: 'up', actor_id: model.id.to_s, actor_type: model.class.to_s) }
-
       it 'doesnt matter because it runs in a separate worker process' do
-        expect { barfing_event }.to_not raise_exception
+        expect {
+          Reactor::Event.perform(
+              'barfed',
+              somethin: 'up',
+              actor_id: model.id.to_s,
+              actor_type: model.class.to_s
+          )
+        }.to_not raise_exception
       end
     end
   end
