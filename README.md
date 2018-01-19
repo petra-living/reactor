@@ -28,7 +28,8 @@ Or install it yourself as:
 
 ## Usage
 
-Well, this is evolving, so it's probably best to go read the specs.
+Well, this is evolving, so it's probably best to go read the specs as
+well as below.
 
 
 ### Barebones API
@@ -37,7 +38,6 @@ Well, this is evolving, so it's probably best to go read the specs.
 Reactor::Event.publish(:event_name, any: 'data', you: 'want')
 ```
 
-### ActiveModel extensions
 
 #### Publishable
 
