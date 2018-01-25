@@ -287,6 +287,15 @@ on_event :high_frequency_event, :do_something, deprecated: true
 If no -> you can probably just delete the subscriber. 
 In the worst case scenario, you get some background exceptions for a job you didn't intend to have run anyway. Pick your poison. 
 
+#### Managing Queues
+
+There will likely be more queue theory here later, but for now here are the features.
+
+Everything is done on Sidekiq `default` queue by default.
+
+Subscribers can opt into certain queues with `on_event :whatever, sidekiq_options: { queue: 'whatever' }` argument.
+
+You can also override _all queue choices_ with `ENV['REACTOR_QUEUE']`. You may want to do this if you wish to contain the 'cascade' of events for more expensive or risky operations.
 
 ## Contributing
 
