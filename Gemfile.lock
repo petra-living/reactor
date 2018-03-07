@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    reactor (0.19.0)
+    reactor (1.0.0)
       rails
       sidekiq (> 4.0)
 
