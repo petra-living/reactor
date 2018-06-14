@@ -25,6 +25,7 @@ class Reactor::Event
       actor = data["actor_type"].constantize.unscoped.find(data["actor_id"])
       publishable_event = actor.class.events[name.to_sym]
       ifarg = publishable_event[:if] if publishable_event
+      at = publishable_event[:at] if publishable_event
     end
 
     need_to_fire =  case ifarg
@@ -36,7 +37,14 @@ class Reactor::Event
                       true
                     end
 
-    if need_to_fire
+    not_rescheduled =  case at
+                    when Symbol
+                      actor.send(at) == data[:at]
+                    when NilClass
+                      true
+                    end
+
+    if need_to_fire && not_rescheduled
       data.merge!(fired_at: Time.current, name: name)
       fire_block_subscribers(data, name)
     end
@@ -76,25 +84,6 @@ class Reactor::Event
     end
 
     def reschedule(name, data = {})
-      scheduled_jobs = Sidekiq::ScheduledSet.new
-      job = scheduled_jobs.detect do |job|
-        next if job['class'] != self.name.to_s
-
-        same_event_name  = job['args'].first == name.to_s
-        same_at_time     = job.score.to_i == data[:was].to_i
-
-        if data[:actor]
-          same_actor =  job['args'].second['actor_type']  == data[:actor].class.name &&
-                        job['args'].second['actor_id']    == data[:actor].id
-
-          same_event_name && same_at_time && same_actor
-        else
-          same_event_name && same_at_time
-        end
-      end
-
-      job.delete if job
-
       publish(name, data.except([:was, :if])) if data[:at].try(:future?)
     end
   end

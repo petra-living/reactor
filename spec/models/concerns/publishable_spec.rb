@@ -137,6 +137,66 @@ describe Reactor::Publishable do
       end
     end
 
+    context 'conditional firing at reschedule time' do
+      before do
+        Sidekiq::Testing.fake!
+        Sidekiq::Worker.clear_all
+        publisher
+        job = Reactor::Event.jobs.detect do |job|
+          job['class'] == 'Reactor::Event' && job['args'].first == 'conditional_event_on_publish'
+        end
+        @job_args = job['args']
+      end
+
+      after do
+        Sidekiq::Testing.inline!
+      end
+
+      it 'calls the subscriber when if is set to true' do
+        publisher.we_want_it = true
+        publisher.start_at = 3.day.from_now
+        allow(Reactor::Event).to receive(:perform_at)
+        publisher.save!
+        expect(Reactor::Event).to have_received(:perform_at).with(publisher.start_at, :conditional_event_on_publish, anything())
+
+        Reactor::Event.perform(@job_args[0], @job_args[1])
+      end
+
+      it 'does not call the subscriber when if is set to false' do
+        publisher.we_want_it = false
+        publisher.start_at = 3.days.from_now
+        publisher.save!
+
+        expect{ Reactor::Event.perform(@job_args[0], @job_args[1]) }.to_not change{ Sidekiq::Queues.jobs_by_queue.values.flatten.count }
+      end
+
+      it 'keeps the if intact when rescheduling' do
+        old_start_at = publisher.start_at
+        publisher.start_at = 3.day.from_now
+        allow(Reactor::Event).to receive(:publish)
+        expect(Reactor::Event).to receive(:publish).with(:conditional_event_on_publish, {
+          at: publisher.start_at,
+          actor: publisher,
+          target: nil,
+          was: old_start_at,
+          if: anything
+        })
+        publisher.save!
+      end
+
+      it 'keeps the if intact when scheduling' do
+        start_at = 3.days.from_now
+        allow(Reactor::Event).to receive(:publish)
+        expect(Reactor::Event).to receive(:publish).with(:conditional_event_on_publish, {
+          at: start_at,
+          actor: anything,
+          target: nil,
+          if: anything
+        })
+        Publisher.create!(start_at: start_at)
+      end
+    end
+
     context 'conditional firing on save' do
       before do
         Sidekiq::Testing.fake!
