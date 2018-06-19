@@ -77,19 +77,20 @@ class Reactor::Event
 
     def reschedule(name, data = {})
       scheduled_jobs = Sidekiq::ScheduledSet.new
-      job = scheduled_jobs.detect do |job|
+      # Note that scheduled_jobs#fetch returns only jobs matching the data[:was]
+      # timestamp - down to fractions of a second
+      job = scheduled_jobs.fetch(data[:was].to_f).detect do |job|
         next if job['class'] != self.name.to_s
 
         same_event_name  = job['args'].first == name.to_s
-        same_at_time     = job.score.to_i == data[:was].to_i
 
         if data[:actor]
           same_actor =  job['args'].second['actor_type']  == data[:actor].class.name &&
                         job['args'].second['actor_id']    == data[:actor].id
 
-          same_event_name && same_at_time && same_actor
+          same_event_name && same_actor
         else
-          same_event_name && same_at_time
+          same_event_name
         end
       end
 
