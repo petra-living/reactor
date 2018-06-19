@@ -1,5 +1,22 @@
 # Reactor Change Log
 
+1.0.2
+------
+
+Fix issue #82, a performance bug with `publishes at: :updated_at` style
+ActiveRecord publishers
+
+1.0.1
+-----
+
+Update Rails Dependency
+
+1.0.0
+-------
+
+Cleanup of old deprecated methods, general overhauls
+
+
 0.17.0
 ----------
 `publishes` method in publishable now accepts `:enqueue_if` option
