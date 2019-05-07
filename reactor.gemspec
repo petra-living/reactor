@@ -7,10 +7,10 @@ require 'reactor/version'
 Gem::Specification.new do |spec|
   spec.name          = 'reactor'
   spec.version       = Reactor::VERSION
-  spec.authors       = %w[winfred walt nate petermin]
-  spec.email         = ['winfred@hired.com', 'walt@hired.com', 'nate@hired.com', 'kengteh.min@gmail.com']
-  spec.description   = ' rails chrono reactor '
-  spec.summary       = ' Sidekiq/ActiveRecord pubsub lib '
+  spec.authors       = %w[winfred walt nate petermin christospappas therabidbanana]
+  spec.email         = ['gabe@hired.com', 'christos@hired.com']
+  spec.description   = 'rails chrono reactor'
+  spec.summary       = 'Sidekiq/ActiveRecord pubsub lib'
   spec.homepage      = ''
   spec.license       = 'MIT'
 
