@@ -5,7 +5,8 @@ class Reactor::Event
 
   CONSOLE_CONFIRMATION_MESSAGE = <<-eos
     It looks like you are on a production console. Only fire an event if you intend to trigger 
-    all of its subscribers. In order to proceed, you must pass `srsly: true` in the event data.'
+    all of its subscribers. In order to proceed, you must pass `srsly: true` in the event data. To
+    configures Reactor to ignore this validation, set `ENV['REACTOR_CONSOLE_ENABLED']` to a value.
   eos
 
   attr_accessor :__data__
