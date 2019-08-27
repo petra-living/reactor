@@ -63,19 +63,40 @@ describe Reactor::Event do
     end
 
     context 'when in a production rails console' do
-      it 'requires a second argument srsly: true' do
+      before do
         stub_const('Rails::Console', Class.new)
         ENV['RACK_ENV'] = 'production'
+      end
 
-        expect {
-          Reactor::Event.publish(:thing)
-        }.to raise_exception(ArgumentError)
-
-        expect {
-          Reactor::Event.publish(:thing, srsly: true)
-        }.to_not raise_exception
-
+      after do
         ENV['RACK_ENV'] = 'development'
+      end
+
+      context 'when allowing console usage' do
+        before { ENV['REACTOR_CONSOLE_ENABLED'] = 'true' }
+        after { ENV['REACTOR_CONSOLE_ENABLED'] = nil }
+
+        it 'does not require `srsly: true`' do
+          expect {
+            Reactor::Event.publish(:thing)
+          }.to_not raise_exception
+
+          expect {
+            Reactor::Event.publish(:thing, srsly: true)
+          }.to_not raise_exception
+        end
+      end
+
+      context 'without specifying console usage' do
+        it 'requires a second argument srsly: true' do
+          expect {
+            Reactor::Event.publish(:thing)
+          }.to raise_exception(ArgumentError)
+
+          expect {
+            Reactor::Event.publish(:thing, srsly: true)
+          }.to_not raise_exception
+        end
       end
     end
 

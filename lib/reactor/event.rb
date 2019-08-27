@@ -60,7 +60,8 @@ class Reactor::Event
     end
 
     def publish(name, data = {})
-      if defined?(Rails::Console) && ENV['RACK_ENV'] == 'production' && data[:srsly].blank?
+      if defined?(Rails::Console) && ENV['RACK_ENV'] == 'production' && data[:srsly].blank? &&
+         !ENV['REACTOR_CONSOLE_ENABLED']
         raise ArgumentError.new(CONSOLE_CONFIRMATION_MESSAGE)
       end
 

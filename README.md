@@ -188,6 +188,12 @@ Subscribers can opt into certain queues with `on_event :whatever, sidekiq_option
 
 You can also override _all queue choices_ with `ENV['REACTOR_QUEUE']`. You may want to do this if you wish to contain the 'cascade' of events for more expensive or risky operations.
 
+#### Executing in a Console
+
+By default, running a Rails console in a `production` `ENV['RACK_ENV']` will cause publish events to
+bomb out unless `srsly: true` is provided as an additional parameter to event publishing. To control
+this behavior, set `ENV['REACTOR_CONSOLE_ENABLED']` to a value.
+
 ## Contributing
 
 1. Fork it
