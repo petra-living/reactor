@@ -212,3 +212,13 @@ For testing Reactor itself we use Thoughtbot's [appraisal gem](https://github.co
 
 We are Ruby developers ourselves, and we use all of our open source projects in production. We always encourge forks, pull requests, and issues. Get in touch with the Hired Engineering team at _opensource@hired.com_.
 
+
+
+## Releasing
+
+If you are a gem maintainer, you can build and release this gem with:
+
+```
+$ bundle exec rake build
+$ gem push pkg/reactor(version).gem
+```
